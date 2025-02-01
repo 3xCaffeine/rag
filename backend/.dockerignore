@@ -1,0 +1,9 @@
+.venv
+__pycache__
+.git
+.github
+docker-compose.yml
+Caddyfile
+env.example
+data
+.env
