@@ -51,7 +51,7 @@ app.add_middleware(
 load_dotenv()
 
 key = APIKeyHeader(name="X-API-Key")
-
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
 API_KEY = os.getenv("API_KEY")
 ASTRA_DB_APPLICATION_TOKEN = os.environ.get("ASTRA_DB_APPLICATION_TOKEN")
 ASTRA_DB_API_ENDPOINT = os.environ.get("ASTRA_DB_API_ENDPOINT")
