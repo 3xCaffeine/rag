@@ -1,3 +1,7 @@
+import os
+
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+
 from llama_index.core import VectorStoreIndex
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.astra_db import AstraDBVectorStore
