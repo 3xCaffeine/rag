@@ -7,3 +7,4 @@ Caddyfile
 env.example
 data
 .env
+venv
