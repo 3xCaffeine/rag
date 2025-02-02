@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Paperclip, Globe, Mic } from "lucide-react";
+import { Send, Paperclip, Globe, Mic, X } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import { useCategory } from "@/context/CategoryContext";
 
@@ -11,6 +11,32 @@ interface Message {
   content: string;
   isStreaming?: boolean;
 }
+
+// Add FilePreview component
+const FilePreview = ({ 
+  file, 
+  onRemove 
+}: { 
+  file: File; 
+  onRemove: () => void;
+}) => {
+  return (
+    <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+      <span className="text-sm text-gray-500 flex-1 truncate">
+        {file.name}
+      </span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-5 w-5"
+        onClick={onRemove}
+      >
+        <X className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+};
 
 export default function PromptForm() {
   const { category } = useCategory();
@@ -67,7 +93,7 @@ export default function PromptForm() {
       }
 
       const params = new URLSearchParams({
-        category: category,
+        category: category, // This line is already correct
         prompt: prompt,
       });
 
@@ -190,11 +216,27 @@ export default function PromptForm() {
     fileInputRef.current?.click();
   };
 
+  const handleRemoveFile = () => {
+    setSelectedImage(null);
+    setSelectedPdf(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       
+      // Add recording message immediately
+      const recordingMessage: Message = {
+        role: "user",
+        content: "Recording audio...",
+        isStreaming: true
+      };
+      setMessages(prev => [...prev, recordingMessage]);
+
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           audioChunks.current.push(e.data);
@@ -205,6 +247,17 @@ export default function PromptForm() {
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
         audioChunks.current = [];
         
+        // Update the recording message
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1] = {
+            role: "user",
+            content: "🎤 Audio message sent",
+            isStreaming: false
+          };
+          return newMessages;
+        });
+
         // Submit audio file
         const formData = new FormData();
         formData.append('file', audioBlob);
@@ -218,7 +271,7 @@ export default function PromptForm() {
           }
 
           const params = new URLSearchParams({
-            category: "medical;",
+            category: category, 
           });
 
           const response = await fetch(
@@ -284,6 +337,26 @@ export default function PromptForm() {
 
       <form onSubmit={handleSubmit} className="p-4 border-t">
         <div className="flex flex-col space-y-2">
+          {(selectedImage || selectedPdf) && (
+            <FilePreview 
+              file={selectedImage || selectedPdf!} 
+              onRemove={handleRemoveFile}
+            />
+          )}
+          {(webSearchEnabled || isRecording) && (
+            <div className="flex flex-col gap-1">
+              {webSearchEnabled && (
+                <div className="text-sm text-blue-500">
+                  Web search mode enabled
+                </div>
+              )}
+              {isRecording && (
+                <div className="text-sm text-red-500">
+                  Recording in progress...
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex space-x-2">
             <Input
               type="text"
@@ -329,19 +402,9 @@ export default function PromptForm() {
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          {(selectedImage || selectedPdf) && (
+          {isLoading && (
             <div className="text-sm text-gray-500">
-              Selected file: {selectedImage?.name || selectedPdf?.name}
-            </div>
-          )}
-          {webSearchEnabled && (
-            <div className="text-sm text-blue-500">
-              Web search mode enabled
-            </div>
-          )}
-          {isRecording && (
-            <div className="text-sm text-red-500">
-              Recording in progress...
+              AI is typing...
             </div>
           )}
         </div>
