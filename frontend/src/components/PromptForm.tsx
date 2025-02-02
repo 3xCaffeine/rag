@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Paperclip } from "lucide-react";
+import { Send, Paperclip, Globe } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 
 interface Message {
@@ -16,6 +16,7 @@ export default function PromptForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,6 +38,8 @@ export default function PromptForm() {
         ? `[Image uploaded] ${prompt}`
         : selectedPdf
         ? `[PDF uploaded] ${prompt}`
+        : webSearchEnabled
+        ? `[Web Search] ${prompt}`
         : prompt 
     };
     setMessages((prev) => [...prev, userMessage]);
@@ -56,7 +59,19 @@ export default function PromptForm() {
       });
 
       let response;
-      if (selectedPdf) {
+      if (webSearchEnabled) {
+        // Handle web search case
+        response = await fetch(
+          `${apiUrl}/search?${params}`,
+          {
+            method: "POST",
+            headers: {
+              "X-API-Key": apiKey,
+              "Accept": "application/json",
+            },
+          }
+        );
+      } else if (selectedPdf) {
         // Handle PDF + text case
         const formData = new FormData();
         formData.append('file', selectedPdf);
@@ -176,6 +191,14 @@ export default function PromptForm() {
             />
             <Button 
               type="button" 
+              onClick={() => setWebSearchEnabled(!webSearchEnabled)} 
+              size="icon"
+              variant={webSearchEnabled ? "default" : "ghost"}
+            >
+              <Globe className="h-4 w-4" />
+            </Button>
+            <Button 
+              type="button" 
               onClick={handlePaperclipClick} 
               size="icon"
               variant="ghost"
@@ -189,6 +212,11 @@ export default function PromptForm() {
           {(selectedImage || selectedPdf) && (
             <div className="text-sm text-gray-500">
               Selected file: {selectedImage?.name || selectedPdf?.name}
+            </div>
+          )}
+          {webSearchEnabled && (
+            <div className="text-sm text-blue-500">
+              Web search mode enabled
             </div>
           )}
         </div>
