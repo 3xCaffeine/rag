@@ -114,17 +114,17 @@ def process_query(category: str, query: str) -> str:
     try:
         index = get_vector_store(category)
 
-        chat_history = chat_memory.get()
+        # chat_history = chat_memory.get()
         
-        chat_memory.put(ChatMessage(role=MessageRole.USER, content=query))
+        # chat_memory.put(ChatMessage(role=MessageRole.USER, content=query))
 
         query_engine = index.as_query_engine(llm=doc_llm)
 
-        full_query = "\n".join([msg.content for msg in chat_history]) + "\n" + query
+        # full_query = "\n".join([msg.content for msg in chat_history]) + "\n" + query
         
-        response = query_engine.query(full_query)
+        response = query_engine.query(query)
 
-        chat_memory.put(ChatMessage(role=MessageRole.ASSISTANT, content=response.response))
+        # chat_memory.put(ChatMessage(role=MessageRole.ASSISTANT, content=response.response))
 
         logger.info(f"Successfully processed query for category: {category}")
         return str(response.response)
