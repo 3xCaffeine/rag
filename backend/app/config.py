@@ -12,4 +12,4 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
 
-PDF_STORAGE_DIR = "data/pdfs"
+PDF_STORAGE_DIR = "./data/pdfs"

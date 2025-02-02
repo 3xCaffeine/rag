@@ -23,11 +23,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project
 
+
 ENV PYTHONPATH=/app
 
 COPY ./pyproject.toml ./uv.lock /app/
 
 COPY ./app /app/app
+
+RUN mkdir -p data/pdfs
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
