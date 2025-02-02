@@ -4,14 +4,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import ReactMarkdown from 'react-markdown';
-import { cn } from "@/lib/utils";
+import TypingIndicator from './TypingIndicator'
 
 interface MessageBubbleProps {
   role: 'user' | 'assistant'
   content: string
+  isLoading?: boolean
 }
 
-export default function MessageBubble({ role, content }: MessageBubbleProps) {
+export default function MessageBubble({ role, content, isLoading }: MessageBubbleProps) {
   const [isThoughtOpen, setIsThoughtOpen] = useState(false)
   
   const thoughtMatch = content.match(/<think>(.*?)<\/think>/s)
@@ -47,9 +48,13 @@ export default function MessageBubble({ role, content }: MessageBubbleProps) {
             : 'bg-muted'
         }`}>
           <CardContent className="p-3">
-            <ReactMarkdown className="prose prose-invert max-w-none">
-              {cleanContent}
-            </ReactMarkdown>
+            {isLoading ? (
+              <TypingIndicator />
+            ) : (
+              <ReactMarkdown className="prose prose-invert max-w-none">
+                {cleanContent}
+              </ReactMarkdown>
+            )}
           </CardContent>
         </Card>
       </div>

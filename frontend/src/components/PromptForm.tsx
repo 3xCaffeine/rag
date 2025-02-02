@@ -2,8 +2,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Paperclip, Globe } from "lucide-react";
+import { Send, Paperclip, Globe, Mic } from "lucide-react";
 import MessageBubble from "./MessageBubble";
+import { useCategory } from "@/context/CategoryContext";
 
 interface Message {
   role: "user" | "assistant";
@@ -11,12 +12,16 @@ interface Message {
 }
 
 export default function PromptForm() {
+  const { category } = useCategory();
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const audioChunks = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,7 +47,14 @@ export default function PromptForm() {
         ? `[Web Search] ${prompt}`
         : prompt 
     };
-    setMessages((prev) => [...prev, userMessage]);
+    
+    // Add loading message
+    const loadingMessage: Message = {
+      role: "assistant",
+      content: ""
+    };
+    
+    setMessages((prev) => [...prev, userMessage, loadingMessage]);
     setPrompt("");
     setIsLoading(true);
 
@@ -54,13 +66,12 @@ export default function PromptForm() {
       }
 
       const params = new URLSearchParams({
-        category: "medical",
+        category: category,
         prompt: prompt,
       });
 
       let response;
       if (webSearchEnabled) {
-        // Handle web search case
         response = await fetch(
           `${apiUrl}/search?${params}`,
           {
@@ -72,7 +83,6 @@ export default function PromptForm() {
           }
         );
       } else if (selectedPdf) {
-        // Handle PDF + text case
         const formData = new FormData();
         formData.append('file', selectedPdf);
 
@@ -88,7 +98,6 @@ export default function PromptForm() {
           }
         );
       } else if (selectedImage) {
-        // Handle image + text case
         const formData = new FormData();
         formData.append('file', selectedImage);
 
@@ -104,7 +113,6 @@ export default function PromptForm() {
           }
         );
       } else {
-        // Handle text-only case
         response = await fetch(
           `${apiUrl}/text?${params}`,
           {
@@ -117,11 +125,15 @@ export default function PromptForm() {
       }
 
       const data = await response.json();
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.response || "No response received",
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+      // Replace loading message with actual response
+      setMessages((prev) => {
+        const newMessages = [...prev.slice(0, -1)]; // Remove loading message
+        newMessages.push({
+          role: "assistant",
+          content: data.response || "No response received"
+        });
+        return newMessages;
+      });
       setSelectedImage(null);
       setSelectedPdf(null);
       if (fileInputRef.current) {
@@ -129,11 +141,15 @@ export default function PromptForm() {
       }
     } catch (error) {
       console.error("API Error:", error); 
-      const errorMessage: Message = {
-        role: "assistant",
-        content: "Error occurred while fetching data",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Replace loading message with error
+      setMessages((prev) => {
+        const newMessages = [...prev.slice(0, -1)]; // Remove loading message
+        newMessages.push({
+          role: "assistant",
+          content: "Error occurred while fetching data"
+        });
+        return newMessages;
+      });
     } finally {
       setIsLoading(false);
     }
@@ -159,6 +175,83 @@ export default function PromptForm() {
     fileInputRef.current?.click();
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunks.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
+        audioChunks.current = [];
+        
+        // Submit audio file
+        const formData = new FormData();
+        formData.append('file', audioBlob);
+
+        setIsLoading(true);
+        try {
+          const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          if (!apiKey || !apiUrl) {
+            throw new Error("API key or URL is not defined");
+          }
+
+          const params = new URLSearchParams({
+            category: "medical;",
+          });
+
+          const response = await fetch(
+            `${apiUrl}/audio?${params}`,
+            {
+              method: "POST",
+              headers: {
+                "X-API-Key": apiKey,
+                "Accept": "application/json",
+              },
+              body: formData,
+            }
+          );
+
+          const data = await response.json();
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: data.response || "No response received",
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        } catch (error) {
+          console.error("API Error:", error);
+          const errorMessage: Message = {
+            role: "assistant",
+            content: "Error occurred while processing audio",
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -167,6 +260,7 @@ export default function PromptForm() {
             key={index}
             role={message.role}
             content={message.content}
+            isLoading={isLoading && index === messages.length - 1 && message.role === 'assistant'}
           />
         ))}
         <div ref={messagesEndRef} />
@@ -199,6 +293,16 @@ export default function PromptForm() {
             </Button>
             <Button 
               type="button" 
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onMouseLeave={stopRecording}
+              size="icon"
+              variant={isRecording ? "default" : "ghost"}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+            <Button 
+              type="button" 
               onClick={handlePaperclipClick} 
               size="icon"
               variant="ghost"
@@ -217,6 +321,11 @@ export default function PromptForm() {
           {webSearchEnabled && (
             <div className="text-sm text-blue-500">
               Web search mode enabled
+            </div>
+          )}
+          {isRecording && (
+            <div className="text-sm text-red-500">
+              Recording in progress...
             </div>
           )}
         </div>
