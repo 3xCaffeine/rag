@@ -9,6 +9,7 @@ import { useCategory } from "@/context/CategoryContext";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  isStreaming?: boolean;
 }
 
 export default function PromptForm() {
@@ -125,15 +126,29 @@ export default function PromptForm() {
       }
 
       const data = await response.json();
-      // Replace loading message with actual response
+      // Replace loading message with streaming response
       setMessages((prev) => {
         const newMessages = [...prev.slice(0, -1)]; // Remove loading message
         newMessages.push({
           role: "assistant",
-          content: data.response || "No response received"
+          content: data.response || "No response received",
+          isStreaming: true
         });
         return newMessages;
       });
+
+      // After 5 seconds, mark the message as no longer streaming
+      setTimeout(() => {
+        setMessages((prev) => {
+          return prev.map((msg, idx) => {
+            if (idx === prev.length - 1) {
+              return { ...msg, isStreaming: false };
+            }
+            return msg;
+          });
+        });
+      }, 5000);
+
       setSelectedImage(null);
       setSelectedPdf(null);
       if (fileInputRef.current) {
@@ -261,6 +276,7 @@ export default function PromptForm() {
             role={message.role}
             content={message.content}
             isLoading={isLoading && index === messages.length - 1 && message.role === 'assistant'}
+            isStreaming={message.isStreaming}
           />
         ))}
         <div ref={messagesEndRef} />

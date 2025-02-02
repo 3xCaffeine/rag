@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, ChevronRight } from "lucide-react"
@@ -10,14 +10,33 @@ interface MessageBubbleProps {
   role: 'user' | 'assistant'
   content: string
   isLoading?: boolean
+  isStreaming?: boolean
 }
 
-export default function MessageBubble({ role, content, isLoading }: MessageBubbleProps) {
+export default function MessageBubble({ role, content, isLoading, isStreaming }: MessageBubbleProps) {
   const [isThoughtOpen, setIsThoughtOpen] = useState(false)
+  const [displayedContent, setDisplayedContent] = useState('')
+  const [currentIndex, setCurrentIndex] = useState(0)
   
   const thoughtMatch = content.match(/<think>(.*?)<\/think>/s)
   const thought = thoughtMatch ? thoughtMatch[1].trim() : null
   const cleanContent = content.replace(/<think>.*?<\/think>/s, '').trim()
+
+  useEffect(() => {
+    if (!isStreaming || role === 'user') {
+      setDisplayedContent(content)
+      return
+    }
+
+    if (currentIndex < content.length) {
+      const timer = setTimeout(() => {
+        setDisplayedContent(content.substring(0, currentIndex + 1))
+        setCurrentIndex(currentIndex + 1)
+      }, 10) // Adjust speed as needed
+
+      return () => clearTimeout(timer)
+    }
+  }, [content, currentIndex, isStreaming, role])
 
   return (
     <div className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -52,7 +71,7 @@ export default function MessageBubble({ role, content, isLoading }: MessageBubbl
               <TypingIndicator />
             ) : (
               <ReactMarkdown className="prose prose-invert max-w-none">
-                {cleanContent}
+                {isStreaming ? displayedContent : cleanContent}
               </ReactMarkdown>
             )}
           </CardContent>
