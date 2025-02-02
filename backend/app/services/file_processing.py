@@ -105,9 +105,6 @@ def perform_pdf_query(query: str) -> str:
 
         chat_memory.put(ChatMessage(role=MessageRole.ASSISTANT, content=response.response))
 
-        # Clean up the collection after getting the response
-        cleanup_astra_collection()
-
         logger.info(f"Successfully processed query for PDF")
         return str(response.response)
     except Exception as e:
