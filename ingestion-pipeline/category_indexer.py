@@ -1,5 +1,8 @@
 from dotenv import load_dotenv
 import os
+
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+
 import argparse
 from llama_index.core import (
     VectorStoreIndex,
@@ -9,8 +12,6 @@ from llama_index.core import (
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.astra_db import AstraDBVectorStore
 from llama_index.llms.groq import Groq
-
-os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
 
 
 def load_environment_variables():
