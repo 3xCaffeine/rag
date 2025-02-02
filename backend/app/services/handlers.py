@@ -4,7 +4,8 @@ from app.config import GEMINI_API_KEY
 from app.utils.logger import logger
 from google.genai import types, Client
 from google.genai.types import Tool, GenerateContentConfig, GoogleSearch
-from app.services.vector_store import get_vector_store, doc_llm
+from app.services.vector_store import get_vector_store, doc_llm, chat_memory
+from llama_index.core.llms import ChatMessage, MessageRole
 
 gemini_client = Client(api_key=GEMINI_API_KEY)
 search_tool = Tool(google_search=GoogleSearch())
@@ -112,8 +113,19 @@ def process_query(category: str, query: str) -> str:
     """Process a query using the appropriate vector store"""
     try:
         index = get_vector_store(category)
+
+        chat_history = chat_memory.get()
+        
+        chat_memory.put(ChatMessage(role=MessageRole.USER, content=query))
+
         query_engine = index.as_query_engine(llm=doc_llm)
-        response = query_engine.query(query)
+
+        full_query = "\n".join([msg.content for msg in chat_history]) + "\n" + query
+        
+        response = query_engine.query(full_query)
+
+        chat_memory.put(ChatMessage(role=MessageRole.ASSISTANT, content=response.response))
+
         logger.info(f"Successfully processed query for category: {category}")
         return str(response.response)
     except Exception as e:

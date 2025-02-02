@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from app.models.completion import CompletionResponse
-from app.services.file_processing import process_pdf
+from app.services.file_processing import process_pdf, perform_pdf_query, cleanup_astra_collection
 from app.services.handlers import analyze_audio, analyze_image, process_query, web_search
+from app.services.papers import process_papers, paper_loader
 from app.utils.auth import verify_api_key
 from app.utils.logger import logger
 
@@ -30,10 +31,40 @@ def web_search_completion(
     """Handle web search requests"""
     try:
         search_response = web_search(category, prompt)
-        return CompletionResponse(response=search_response)
+        combined_prompt = f"""
+        This is the most up-to-date and accurate information from a reliable web search. 
+        Perform reasoning and analysis from this provided context primarily: {search_response}\nUser prompt: {prompt}
+        """
+        response_text = process_query(category, combined_prompt)
+        return CompletionResponse(response=response_text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# Research Papers Endpoint
+@router.post("/papers")
+async def paper_completion(
+    category: str,
+    prompt: str,
+    paper: str,
+    secret: str = Depends(verify_api_key)
+):
+    """Handle Research Paper Search and Querying"""
+    try:
+        logger.info(f"Received research paper completion request for category: {category}")
+        
+        loader = paper_loader(category)
+
+        # Process Papers and add to vector store
+        _ = process_papers(category, paper, loader)
+        
+        # Query the processed content
+        response_text = process_query(category, prompt)
+        
+        return CompletionResponse(response=response_text)
+    except Exception as e:
+        logger.error(f"Error in research paper completion: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Audio completion endpoint
 @router.post("/audio")
 async def audio_completion(
@@ -61,6 +92,18 @@ async def audio_completion(
         logger.error(f"Error in audio completion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Drop Collection
+@router.get("/nuke")
+async def clean_collection(secret: str = Depends(verify_api_key)):
+    """Drop the pdf collection from the database"""
+    try:
+        logger.info(f"Initiated pdf_collections destruction")
+
+        cleanup_astra_collection()
+    except Exception as e:
+        logger.error(f"Error in dropping pdf collection: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Document endpoint
 @router.post("/pdfs")
 async def pdf_completion(
@@ -83,7 +126,7 @@ async def pdf_completion(
         _ = process_pdf(pdf_bytes, category)
         
         # Query the processed content
-        response_text = process_query(category, prompt)
+        response_text = perform_pdf_query(prompt)
         
         return CompletionResponse(response=response_text)
     except Exception as e:

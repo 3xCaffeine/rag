@@ -3,6 +3,10 @@ from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core import VectorStoreIndex
 from llama_index.llms.groq import Groq
 from app.config import ASTRA_DB_APPLICATION_TOKEN, ASTRA_DB_API_ENDPOINT, OLLAMA_BASE_URL, GROQ_API_KEY
+from llama_index.core.memory import ChatMemoryBuffer
+
+# Initialize chat memory (adjust token limit as needed)
+chat_memory = ChatMemoryBuffer(token_limit=8000)
 
 vector_stores = {}
 

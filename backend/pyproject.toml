@@ -12,4 +12,5 @@ dependencies = [
     "llama-index-embeddings-ollama>=0.5.0",
     "llama-index-llms-groq>=0.3.1",
     "google-genai>=0.8.0",
+    "llama-index-readers-papers>=0.3.0",
 ]
