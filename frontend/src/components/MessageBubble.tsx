@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronDown, ChevronRight } from "lucide-react"
+import ReactMarkdown from 'react-markdown';
+import { cn } from "@/lib/utils";
 
 interface MessageBubbleProps {
   role: 'user' | 'assistant'
@@ -45,7 +47,9 @@ export default function MessageBubble({ role, content }: MessageBubbleProps) {
             : 'bg-muted'
         }`}>
           <CardContent className="p-3">
-            {cleanContent}
+            <ReactMarkdown className="prose prose-invert max-w-none">
+              {cleanContent}
+            </ReactMarkdown>
           </CardContent>
         </Card>
       </div>

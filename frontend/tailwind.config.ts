@@ -55,8 +55,32 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: 'none',
+            color: 'inherit',
+            a: {
+              color: 'inherit',
+              textDecoration: 'underline',
+            },
+            // Remove default prose margins to preserve existing spacing
+            p: {
+              marginTop: 0,
+              marginBottom: 0,
+            },
+            'ul, ol': {
+              marginTop: 0,
+              marginBottom: 0,
+            }
+          },
+        },
+      },
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require("tailwindcss-animate")
+  ],
 } satisfies Config;
