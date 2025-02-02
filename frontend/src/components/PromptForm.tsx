@@ -15,6 +15,7 @@ export default function PromptForm() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,12 +29,14 @@ export default function PromptForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim() && !selectedImage) return;
+    if (!prompt.trim() && !selectedImage && !selectedPdf) return;
 
     const userMessage: Message = { 
       role: "user", 
       content: selectedImage 
-        ? `[Image uploaded] ${prompt}` 
+        ? `[Image uploaded] ${prompt}`
+        : selectedPdf
+        ? `[PDF uploaded] ${prompt}`
         : prompt 
     };
     setMessages((prev) => [...prev, userMessage]);
@@ -53,7 +56,23 @@ export default function PromptForm() {
       });
 
       let response;
-      if (selectedImage) {
+      if (selectedPdf) {
+        // Handle PDF + text case
+        const formData = new FormData();
+        formData.append('file', selectedPdf);
+
+        response = await fetch(
+          `${apiUrl}/pdfs?${params}`, 
+          {
+            method: "POST",
+            headers: {
+              "X-API-Key": apiKey,
+              "Accept": "application/json",
+            },
+            body: formData,
+          }
+        );
+      } else if (selectedImage) {
         // Handle image + text case
         const formData = new FormData();
         formData.append('file', selectedImage);
@@ -89,6 +108,7 @@ export default function PromptForm() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
       setSelectedImage(null);
+      setSelectedPdf(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -104,15 +124,19 @@ export default function PromptForm() {
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (!file.type.match('image/jpe?g')) {
-        alert('Please select only JPG/JPEG images');
+      if (file.type.match('image/jpe?g')) {
+        setSelectedImage(file);
+        setSelectedPdf(null);
+      } else if (file.type === 'application/pdf') {
+        setSelectedPdf(file);
+        setSelectedImage(null);
+      } else {
+        alert('Please select only JPG/JPEG images or PDF files');
         e.target.value = '';
-        return;
       }
-      setSelectedImage(file);
     }
   };
 
@@ -145,8 +169,8 @@ export default function PromptForm() {
             />
             <input
               type="file"
-              accept="image/jpeg,image/jpg"
-              onChange={handleImageSelect}
+              accept="image/jpeg,image/jpg,application/pdf"
+              onChange={handleFileSelect}
               ref={fileInputRef}
               className="hidden"
             />
@@ -162,9 +186,9 @@ export default function PromptForm() {
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          {selectedImage && (
+          {(selectedImage || selectedPdf) && (
             <div className="text-sm text-gray-500">
-              Selected image: {selectedImage.name}
+              Selected file: {selectedImage?.name || selectedPdf?.name}
             </div>
           )}
         </div>
