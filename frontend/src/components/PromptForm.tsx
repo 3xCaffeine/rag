@@ -106,7 +106,13 @@ export default function PromptForm() {
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
+      const file = e.target.files[0];
+      if (!file.type.match('image/jpe?g')) {
+        alert('Please select only JPG/JPEG images');
+        e.target.value = '';
+        return;
+      }
+      setSelectedImage(file);
     }
   };
 
@@ -139,7 +145,7 @@ export default function PromptForm() {
             />
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/jpg"
               onChange={handleImageSelect}
               ref={fileInputRef}
               className="hidden"
