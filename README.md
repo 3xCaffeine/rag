@@ -1,8 +1,8 @@
-<h1><center> RAG-narok</center></h1>
+<h1>RAG-narok</h1>
 
 ---
 
-<center> RAG-narok is an AI-powered documentation assistant that leverages Retrieval-Augmented Generation (RAG) to provide accurate, context-aware responses to professional queries across various domains..</center> 
+RAG-narok is an AI-powered documentation assistant that leverages Retrieval-Augmented Generation (RAG) to provide accurate, context-aware responses to professional queries across various domains.
 
 # Key Features:
 - Knowledge-Based Ingestion Pipeline 
@@ -36,6 +36,13 @@
 - *uv Package Manager* 
 - *Docker* 
 # Usage:
+![image](https://github.com/user-attachments/assets/1c859ebf-e0eb-48d9-9cf9-efb268b7144c)
+
+1. Choose Domain
+2. Enter your Prompt
+3. Enable Web Search(Stock Prices, Weather, API Requests, Current News)
+4. Audio Input
+5. Attach PDF/Image
 
 ```
 docker run -d -p 8000:8000 -v $(pwd)/.env:/app/.env sasquatch06/rag-backend:latest
