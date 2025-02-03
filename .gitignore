@@ -130,3 +130,5 @@ celerybeat.pid
 # Environments
 .env
 .venv
+
+!/frontend/src/lib

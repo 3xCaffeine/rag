@@ -322,20 +322,26 @@ export default function PromptForm() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => (
-          <MessageBubble
-            key={index}
-            role={message.role}
-            content={message.content}
-            isLoading={isLoading && index === messages.length - 1 && message.role === 'assistant'}
-            isStreaming={message.isStreaming}
-          />
-        ))}
-        <div ref={messagesEndRef} />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 dark:bg-black bg-white dark:bg-grid-white/[0.2] bg-grid-black/[0.2] relative">
+        {/* Radial gradient overlay */}
+        <div className="absolute pointer-events-none inset-0 dark:bg-black bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
+        
+        {/* Messages container - make it relative to appear above the gradient */}
+        <div className="relative">
+          {messages.map((message, index) => (
+            <MessageBubble
+              key={index}
+              role={message.role}
+              content={message.content}
+              isLoading={isLoading && index === messages.length - 1 && message.role === 'assistant'}
+              isStreaming={message.isStreaming}
+            />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t">
+      <form onSubmit={handleSubmit} className="p-4 border-t bg-background">
         <div className="flex flex-col space-y-2">
           {(selectedImage || selectedPdf) && (
             <FilePreview 

@@ -24,10 +24,10 @@ export default function Home() {
   return (
     <CategoryProvider>
       <main className="h-screen flex flex-col overflow-hidden">
-        <div className="flex-none p-4 border-b">
+        <div className="flex-none p-4 border-b lg:px-12">
           <CategorySelector />
         </div>
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 lg:px-12">
           <PromptForm />
         </div>
       </main>
