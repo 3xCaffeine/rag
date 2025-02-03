@@ -1,0 +1,11 @@
+# Frontend (running locally)
+
+subdomain.com {
+    reverse_proxy 172.17.0.1
+}
+
+# Backend (running on docker)
+
+subdomain.com {
+    reverse_proxy api:8000
+}
