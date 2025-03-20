@@ -1,8 +1,8 @@
-<h1>RAG-narok</h1>
+<h1>InfoRAG</h1>
 
 ---
 
-RAG-narok is an AI-powered documentation assistant that leverages Retrieval-Augmented Generation (RAG) to provide accurate, context-aware responses to professional queries across various domains.
+InfoRAG is an AI-powered documentation assistant that leverages Retrieval-Augmented Generation (RAG) to provide accurate, context-aware responses to professional queries across various domains.
 
 # Key Features:
 - Knowledge-Based Ingestion Pipeline 
