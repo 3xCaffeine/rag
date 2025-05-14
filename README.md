@@ -20,7 +20,7 @@
 The project consists of four main components:
 
 - **Ingestion Pipeline**  
-  Reads documents (PDFs, text, markdown), splits and vectorizes them, and stores embeddings in a vector database (e.g. Pinecone, Weaviate).
+  Reads documents (PDFs, text, image and audio transcriptions), splits and vectorizes them, and stores embeddings in a vector database.
 
 - **Backend API**  
   A FastAPI service exposing endpoints for querying the vector store, invoking SoTa LLMs such as Deepseek, and streaming chat responses.
