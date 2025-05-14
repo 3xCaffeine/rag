@@ -79,15 +79,20 @@ The project consists of four main components:
 
     Copy the example `.env.example` into each service folder and add the API keys, URLs and AstraDB database credentials.
 
-3. Build & run with Docker Compose
-
+3. Run the backend API and Ollama embedding model with Docker Compose
     ```
     docker-compose up -d
     ```
 > [!NOTE]  
 > In case GPU support is unavailable on the machine, utilize a hosted text embedding model (OpenAI Ada, Jina AI, Cohere etc.) and remove the Ollama section from the Compose config.
 
-4. (Optional) For remote deployment with custom domains, configure the `deployment/Caddyfile` otherwise remove the Caddy section from Compose configuration.
+4. Run the dev server for the chat frontend
+    ```bash
+    bun i
+    bun dev
+    ```
+
+5. (Optional) For remote deployment with custom domains, configure the `deployment/Caddyfile` otherwise remove the Caddy section from Compose configuration.
 
 ### Expected Result
 
@@ -100,7 +105,7 @@ ollama          ollama/ollama:latest   "/bin/sh ./run_model…"   ollama    9 se
 
 ## Usage
 
-Visit Ragnarok chat at http://localhost:3000.
+Visit Ragnarok chat at http://localhost:3000 in the browser.
 
 
 ### Demo
