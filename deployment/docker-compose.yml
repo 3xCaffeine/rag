@@ -1,0 +1,46 @@
+---
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    container_name: proxy
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+
+  api:
+    image: ghcr.io/3xCaffeine/rag-backend:latest
+    container_name: api
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8000"
+    
+  ollama:
+    container_name: ollama
+    tty: true
+    restart: unless-stopped
+    image: ollama/ollama:latest
+    ports:
+      - 11434:11434
+    volumes:
+      - ./run_model.sh:/run_model.sh
+      - ollama:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+    entrypoint: ["/bin/sh", "./run_model.sh"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1 
+              capabilities: [gpu]
+
+volumes:
+  ollama:
+  caddy_data:

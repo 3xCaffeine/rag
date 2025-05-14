@@ -4,8 +4,7 @@ from app.config import GEMINI_API_KEY
 from app.utils.logger import logger
 from google.genai import types, Client
 from google.genai.types import Tool, GenerateContentConfig, GoogleSearch
-from app.services.vector_store import get_vector_store, doc_llm, chat_memory
-from llama_index.core.llms import ChatMessage, MessageRole
+from app.services.vector_store import get_vector_store, doc_llm
 
 gemini_client = Client(api_key=GEMINI_API_KEY)
 search_tool = Tool(google_search=GoogleSearch())
@@ -26,7 +25,7 @@ def analyze_audio(audio_data: bytes, category: str) -> str:
         
         # Call Gemini API with audio
         response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-2.0-flash",
             contents=[
                 gemini_prompt,
                 types.Part.from_bytes(
@@ -60,7 +59,7 @@ def analyze_image(image_data: bytes, category: str, prompt: str) -> str:
         
         # Call Gemini API with image
         response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-2.0-flash",
             contents=[
                 gemini_prompt,
                 types.Part.from_bytes(
@@ -97,7 +96,7 @@ def web_search(category: str, prompt: str) -> str:
         
         # Call Gemini API with to perform web search with Google Search Engine
         response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash-exp", 
+            model="gemini-2.0-flash", 
             config=config,
             contents=prompt
         )
@@ -112,19 +111,14 @@ def web_search(category: str, prompt: str) -> str:
 def process_query(category: str, query: str) -> str:
     """Process a query using the appropriate vector store"""
     try:
+        logger.info(f"Processing query for category: {category}")
         index = get_vector_store(category)
 
-        # chat_history = chat_memory.get()
-        
-        # chat_memory.put(ChatMessage(role=MessageRole.USER, content=query))
-
+        logger.info(f"Using vector store for category: {category}")
         query_engine = index.as_query_engine(llm=doc_llm)
 
-        # full_query = "\n".join([msg.content for msg in chat_history]) + "\n" + query
-        
+        logger.info(f"Querying vector store for category: {category}")
         response = query_engine.query(query)
-
-        # chat_memory.put(ChatMessage(role=MessageRole.ASSISTANT, content=response.response))
 
         logger.info(f"Successfully processed query for category: {category}")
         return str(response.response)

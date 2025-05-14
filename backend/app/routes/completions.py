@@ -8,6 +8,8 @@ from app.utils.logger import logger
 
 router = APIRouter(prefix="/openai/v1/completions")
 
+
+# Text completion Endpoint
 @router.post("/text")
 def text_completion(
     category: str,
@@ -16,12 +18,16 @@ def text_completion(
 ):
     """Handle text completion requests"""
     try:
+        logger.info(f"Received text completion request for category: {category}")
+
         response_text = process_query(category, prompt)
         return CompletionResponse(response=response_text)
     except Exception as e:
+        logger.error(f"Error in text completion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Text Web Search completion endpoint
+
+# Web Search completion endpoint
 @router.post("/search")
 def web_search_completion(
     category: str,
@@ -30,15 +36,14 @@ def web_search_completion(
 ):
     """Handle web search requests"""
     try:
+        logger.info(f"Received web search request for category: {category}")
+
         search_response = web_search(category, prompt)
-        combined_prompt = f"""
-        This is the most up-to-date and accurate information from a reliable web search. 
-        Perform reasoning and analysis from this provided context primarily: {search_response}\nUser prompt: {prompt}
-        """
-        response_text = process_query(category, combined_prompt)
-        return CompletionResponse(response=response_text)
+        return CompletionResponse(response=search_response)
     except Exception as e:
+        logger.error(f"Error in web search: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Research Papers Endpoint
 @router.post("/papers")
@@ -64,6 +69,7 @@ async def paper_completion(
     except Exception as e:
         logger.error(f"Error in research paper completion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Audio completion endpoint
 @router.post("/audio")
@@ -92,6 +98,7 @@ async def audio_completion(
         logger.error(f"Error in audio completion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # Drop Collection
 @router.get("/nuke")
 async def clean_collection(secret: str = Depends(verify_api_key)):
@@ -103,6 +110,7 @@ async def clean_collection(secret: str = Depends(verify_api_key)):
     except Exception as e:
         logger.error(f"Error in dropping pdf collection: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Document endpoint
 @router.post("/pdfs")
@@ -132,6 +140,7 @@ async def pdf_completion(
     except Exception as e:
         logger.error(f"Error in PDF completion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Image completion endpoint
 @router.post("/image")

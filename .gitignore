@@ -5,6 +5,8 @@ __pycache__/
 data/
 # C extensions
 *.so
+ragnarok-api
+backend/docker-compose.yml
 
 # Distribution / packaging
 .Python
