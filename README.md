@@ -1,7 +1,5 @@
 # RAGnarok  
-> RAG powered research and documentation assistant for professionals
-
----
+> Fast and modern RAG powered research and documentation assistant for professionals
 
 ### Tech Stack
 ![NextJs](https://img.shields.io/badge/Nextjs-black?style=for-the-badge&logo=nextdotjs&logoColor=white)
@@ -19,13 +17,6 @@
 
 ## Overview
 
-RAGnarok is a full-stack, retrieval-augmented generation (RAG) system that lets you:
-
-1. **Ingest** arbitrary documents pertaining to diverse professions into a vector store  
-2. **Serve** a REST API that retrieves relevant passages and generates answers via 
-3. **Interact** through a modern NextJS based chat UI  
-4. **Deploy** the entire stack using Docker Compose onto the cloud or self host locally
-
 The project consists of four main components:
 
 - **Ingestion Pipeline**  
@@ -40,7 +31,7 @@ The project consists of four main components:
 - **Deployment Manifests**  
   Dockerfiles and Docker Compose manifests to deploy entire project locally or in the cloud.
 
-![System Architecture](assets/arch.jpeg)
+![System Architecture](./assets/arch.jpeg)
 
 ## Prerequisites
 
@@ -77,7 +68,6 @@ The project consists of four main components:
 20 directories, 65 files
 ```
 
-
 ## Setup
 
 1. **Clone the repo**  
@@ -113,7 +103,7 @@ ollama          ollama/ollama:latest   "/bin/sh ./run_model…"   ollama    9 se
 Visit Ragnarok chat at http://localhost:3000.
 
 
-#### Demo
+### Demo
 
 
 
@@ -121,8 +111,9 @@ Visit Ragnarok chat at http://localhost:3000.
 This project was built for the AISoC Chronos Hackathon 2025 by the 3xCaffeine team.
 
 - Sourasish Basu ([@SourasishBasu](https://github.com/SourasishBasu))
-- Swapnil Dutta ([@rycerzes])(https://github.com/rycerzes)
-- Vaibhav Singh ([@monkeplication])(https://github.com/monkeplication)
+- Swapnil Dutta ([@rycerzes](https://github.com/rycerzes))
+- Vaibhav Singh ([@monkeplication](https://github.com/monkeplication))
+- Shourya Merchant ([@dotpixel123](https://github.com/dotpixel123))
 
 ## Version
 | Version | Date          		| Comments        |
