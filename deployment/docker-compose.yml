@@ -1,5 +1,17 @@
 ---
 services:
+  api:
+    image: ghcr.io/3xCaffeine/rag-backend:latest
+    container_name: api
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+
+# Add below section to use Caddy as a reverse proxy with custom domains
   caddy:
     image: caddy:latest
     restart: unless-stopped
@@ -11,15 +23,8 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
 
-  api:
-    image: ghcr.io/3xCaffeine/rag-backend:latest
-    container_name: api
-    restart: unless-stopped
-    env_file:
-      - .env
-    expose:
-      - "8000"
-    
+  
+# Add the service below to run Nomic text embedding model via Ollama if machine has GPU support
   ollama:
     container_name: ollama
     tty: true
